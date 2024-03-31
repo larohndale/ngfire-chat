@@ -107,6 +107,26 @@ export class ChatService {
     }
   };
 
+  // removes a text or image message to Cloud Firestore.
+  removeMessage = async (
+    message: any | null
+  ): Promise<void | DocumentReference<DocumentData>> => {
+    let data: any;
+    try {
+      this.user$.subscribe(async (user) => {
+        if (user?.uid == message.uid) {
+          return await deleteDoc(message).then(() => this.loadMessages());
+        } else {
+          return;
+        }
+      });
+    } catch (error) {
+      console.error('Error writing new message to Firebase Database', error);
+      return;
+    }
+  };
+
+
   // Saves a new message to Cloud Firestore.
   saveTextMessage = async (messageText: string) => {
     // Add a new message entry to the Firebase database.
@@ -118,7 +138,7 @@ export class ChatService {
     // Create the query to load the last 12 messages and listen for new ones.
     const recentMessagesQuery = query(
       collection(this.firestore, 'messages'),
-      orderBy('timestamp', 'desc'),
+      orderBy('timestamp', 'asc'),
       limit(12)
     );
     // Start listening to the query.
